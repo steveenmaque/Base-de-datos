@@ -1,0 +1,773 @@
+﻿Universidad Nacional Mayor de San Marcos
+Universidad del Perú, Decana de América
+Facultad de Ingeniería de Sistemas e Informática
+[ Escudo UNMSM
+en escala de grises ]
+Informe Final de Proyecto
+Sistema PrepaTrack
+Curso
+Base de Datos I
+Docente
+Sumiko Elizabeth Murakami de la Cruz de Molina
+Integrantes
+Integrante
+Código
+Edwin Piero Badillo Castillo
+24200150
+Landry Nicol Bardales Guadalupe
+24200151
+Steveen Dennys Maque Espinoza
+24200059
+Maria Sunori Tonconi Isidro
+24200176
+Lima, Perú
+2026
+Índice
+El índice se genera automáticamente. Para actualizar la numeración de páginas, en Word haga clic derecho sobre la tabla y seleccione "Actualizar campos".
+1. Introducción
+La etapa de preparación preuniversitaria genera un volumen masivo de información diaria: calificaciones de simulacros, horas de estudio, temas dominados y material de repaso, entre otros. Sin un sistema estructurado, esta información se pierde o se maneja de forma desordenada, lo que impide que el estudiante conozca su rendimiento real. El proyecto PrepaTrack soluciona este problema mediante el diseño e implementación de una base de datos relacional que transforma registros aislados en reportes estadísticos exactos.
+El presente informe final consolida el trabajo desarrollado a lo largo del proyecto, integrando el primer avance (análisis, esquema conceptual y primer diagrama Entidad-Relación) con el segundo avance (Modelo Entidad-Relación Extendido, bosquejo del modelo relacional y normalización). A partir del diagrama Entidad-Relación inicial, el documento detalla la evolución hacia un Modelo Entidad-Relación Extendido (MEER) y el proceso de normalización, que justifica teóricamente cómo se organizaron las tablas para evitar la duplicidad de información y asegurar el rendimiento del sistema.
+Finalmente, se presenta el modelo relacional definitivo, las consultas de aplicación propuestas y el catálogo de datos, dejando la base de datos lista para su implementación física. De este modo, el documento recorre el análisis para el modelo de datos, el esquema conceptual, las reglas de negocio, el diseño lógico y la normalización hasta la Tercera Forma Normal (3FN).
+2. Justificación
+El desarrollo de PrepaTrack requiere una base de datos relacional porque la información del estudiante está interconectada: un alumno lleva varios cursos, que se dividen en temas y se evalúan mediante simulacros. Para manejar esta complejidad sin inconsistencias, se aplican las reglas de normalización, lo que permite organizar los datos evitando repeticiones innecesarias y asegurando que, si se modifica un registro, el cambio se refleje en todo el sistema sin perder la conexión con los exámenes o materiales de estudio.
+Otro motivo importante para usar este modelo es el rendimiento del sistema a futuro. Con el paso de los meses, el volumen de información crecerá rápidamente al registrarse nuevas sesiones de estudio, notas y tarjetas de repaso (flashcards). Al contar con un esquema relacional bien diseñado, con sus llaves primarias y foráneas correctamente definidas, se garantiza que la base de datos soporte este aumento de información sin degradar el tiempo de respuesta de búsquedas y consultas.
+Por último, este diseño permite aprovechar las funciones propias del gestor de base de datos para automatizar el trabajo. En lugar de procesar todo de forma externa, se emplearán herramientas nativas de SQL, como las vistas (views) para armar reportes de rendimiento de manera rápida y los disparadores (triggers) para actualizar automáticamente el porcentaje de avance del estudiante cada vez que termine de estudiar un tema. Así, la base de datos no solo almacena la información, sino que ejecuta los cálculos de forma eficiente.
+3. Objetivos
+3.1. Objetivo General
+Diseñar y estructurar una base de datos relacional optimizada para el sistema PrepaTrack, garantizando que el registro del progreso y del material académico sea exacto, consistente y sin redundancias.
+3.2. Objetivos Específicos
+Definir las tablas principales del sistema, estableciendo correctamente las relaciones y cardinalidades entre ellas.
+Normalizar todas las tablas del esquema relacional para evitar la duplicidad de datos y optimizar el almacenamiento de la información.
+Estructurar el modelo para facilitar el uso de consultas SQL complejas y vistas (views) que permitan agrupar datos y generar reportes de calificaciones de forma eficiente.
+Aplicar mecanismos de integridad referencial y restricciones de dominio que aseguren la validez de los datos almacenados.
+4. Análisis para el Modelo de Datos
+El análisis para el modelo de datos parte de la identificación de los requerimientos del sistema, los cuales orientan la definición de entidades, atributos y relaciones. A continuación, se presentan los requerimientos funcionales y no funcionales que delimitan el alcance de PrepaTrack. Las reglas de negocio que se derivan de este análisis se detallan en la Sección 6.
+4.1. Requerimientos Funcionales
+Gestión de cursos y temas
+El sistema debe permitir al estudiante registrar cursos y sus respectivos temas.
+Cada tema debe poder asignarse a un estado de avance: No iniciado, En proceso, Estudiado, Reforzar o Dominado.
+El sistema debe calcular automáticamente el porcentaje de avance por curso.
+El sistema debe identificar los temas pendientes y los temas a reforzar.
+Simulacros
+El sistema debe permitir registrar simulacros con fecha, tiempo de duración, puntaje, número de respuestas correctas e incorrectas y archivo adjunto.
+El sistema debe mostrar la evolución del estudiante en distintos simulacros (comparación de puntajes y desempeño).
+Horarios de estudio
+El sistema debe permitir registrar bloques de estudio indicando día, hora, curso y tema.
+Documentos académicos
+El sistema debe permitir almacenar documentos académicos asociados a los temas, tales como temarios, separatas, resúmenes y guías.
+El sistema debe permitir consultar y organizar estos documentos por curso y tema.
+Flashcards
+El sistema debe permitir crear y gestionar flashcards por tema.
+Cada flashcard debe contener una pregunta y su respectiva respuesta.
+Metas de estudio
+El sistema debe permitir al estudiante definir metas de estudio (por ejemplo, terminar un conjunto de temas o mejorar puntajes en simulacros).
+El sistema debe registrar el estado de cumplimiento de cada meta.
+Sesiones de estudio
+El sistema debe registrar sesiones de estudio con horas, minutos y segundos invertidos.
+Cada sesión debe asociarse a un tema (y, a través de este, a un curso).
+El sistema debe registrar el nivel de comprensión alcanzado en cada sesión.
+4.2. Requerimientos No Funcionales
+El sistema debe calcular porcentajes de avance y estadísticas de simulacros en tiempo real.
+Las consultas de documentos, flashcards y sesiones deben responder en menos de tres segundos.
+La interfaz debe ser intuitiva y permitir al estudiante registrar cursos y temas sin necesidad de capacitación extensa.
+Los registros no deben perderse aunque el usuario cierre sesión inesperadamente.
+El sistema debe ser accesible desde la vía web.
+El sistema debe autenticar a los usuarios mediante credenciales seguras.
+5. Esquema Conceptual
+El esquema conceptual define las entidades del sistema, las relaciones entre ellas y los metadatos asociados, sirviendo de base para la elaboración del diagrama Entidad-Relación.
+5.1. Entidades
+El sistema se compone de diez entidades: Usuario (Estudiante), Curso, Tema, Progreso, Simulacro, Horario, Documento, Flashcard, Meta y Sesión.
+5.2. Relaciones
+Usuario lleva Curso (1:N): un usuario lleva varios cursos.
+Curso contiene Tema (1:N): un curso contiene varios temas.
+Tema se refuerza con Flashcard (1:N): un tema tiene varias flashcards.
+Tema posee Documento (1:N): un tema posee varios documentos.
+Usuario resuelve Simulacro (1:N): un usuario resuelve varios simulacros.
+Usuario organiza Horario (1:N): un usuario organiza varios horarios.
+Usuario define Meta (1:N): un usuario define varias metas.
+Usuario realiza Sesión (1:N): un usuario realiza varias sesiones de estudio.
+Usuario lleva Progreso (1:1): un usuario tiene un único registro de progreso.
+5.3. Metadatos
+Tabla 1
+Entidades y atributos del esquema conceptual
+Entidad
+Atributos
+Usuario
+id_usuario (PK), nombre, correo, contraseña, carrera
+Curso
+id_curso (PK), nombre, id_usuario (FK)
+Tema
+id_tema (PK), nombre, estado, id_curso (FK)
+Progreso
+id_progreso (PK), porcentaje_avance, id_usuario (FK)
+Simulacro
+id_simulacro (PK), fecha, puntaje, tiempo, corrección, archivo, id_usuario (FK)
+Horario
+id_horario (PK), día, hora, id_usuario (FK)
+Documento
+id_documento (PK), temario, separata, resumen, guía, id_tema (FK)
+Flashcard
+id_flashcard (PK), pregunta, respuesta, id_tema (FK)
+Meta
+id_meta (PK), objetivo, estado, id_usuario (FK)
+Sesión
+id_sesion (PK), hora, minuto, segundo, nivel_comprensión, id_tema (FK), id_usuario (FK)
+5.4. Restricciones
+El correo del usuario debe ser único en el sistema.
+El atributo estado de la entidad Tema solo acepta cinco valores: No iniciado, En proceso, Estudiado, Reforzar y Dominado.
+El atributo estado de la entidad Meta solo acepta tres valores: Pendiente, En proceso y Cumplida.
+El atributo porcentaje_avance de Progreso debe estar en el rango de 0 a 100.
+El atributo nivel_comprensión de Sesión debe estar en el rango de 1 a 5.
+Cada Tema debe pertenecer a un único Curso (no puede compartirse entre cursos).
+5.5. Diagrama Entidad-Relación conceptual
+La Figura 1 presenta el primer diagrama Entidad-Relación, que traduce el esquema conceptual a una representación gráfica de entidades, atributos y relaciones.
+Figura 1
+Diagrama Entidad-Relación conceptual del sistema PrepaTrack
+[ Espacio reservado para insertar el diagrama - en escala de grises ]
+Nota. Este diagrama existe en el primer avance del proyecto; debe exportarse en escala de grises e insertarse en este espacio. Elaboración propia.
+6. Reglas de Negocio
+Las reglas de negocio describen las condiciones y comportamientos que el sistema debe respetar de acuerdo con la lógica del dominio de la preparación preuniversitaria.
+El estudiante registra cursos y temas, y cada tema tiene diferentes estados de acuerdo con el avance (No iniciado, En proceso, Estudiado, Reforzar, Dominado).
+El sistema permite calcular porcentajes de avance por curso, temas pendientes y temas a reforzar.
+El usuario puede dar simulacros que se registran con fecha, tiempo, puntaje, preguntas correctas e incorrectas, y guarda el archivo adjunto. Además, se permite ver la evolución del usuario en distintos simulacros.
+Se pueden registrar bloques de estudio con día, hora, curso y tema.
+El sistema almacena documentos académicos como temarios, separatas, resúmenes y guías.
+El sistema cuenta con flashcards o tarjetas de estudio por cada tema, donde cada una tiene su respectiva pregunta y respuesta.
+El estudiante puede crear sus metas de estudio, como terminar temas o mejorar puntajes.
+El estudiante registra sesiones de estudio, donde se almacenan las horas, minutos y segundos invertidos, además del tema y el nivel de comprensión alcanzado.
+7. Modelo Entidad-Relación Extendido (MEER)
+El Modelo Entidad-Relación Extendido (MEER) expone la arquitectura lógica del sistema PrepaTrack. La estructura se fundamenta en una entidad central denominada Usuario (Estudiante), sobre la cual convergen las interacciones operativas y analíticas del sistema. Respecto al primer diagrama, se realizaron ajustes a partir de la retroalimentación recibida en el informe anterior, mejorando la organización de los recursos académicos y la definición de las cardinalidades.
+En esta etapa se consolidan las relaciones jerárquicas y de dependencia entre las entidades: el Usuario concentra las relaciones con Curso, Simulacro, Horario, Meta, Sesión y Progreso, mientras que el Tema articula los recursos de estudio (Documento y Flashcard) y se vincula con el Curso al que pertenece.
+Figura 2
+Modelo Entidad-Relación Extendido (MEER) del sistema PrepaTrack
+[ Espacio reservado para insertar el diagrama - en escala de grises ]
+Nota. Este diagrama existe en el segundo avance del proyecto; debe exportarse en escala de grises e insertarse en este espacio. Elaboración propia.
+8. Modelo Relacional
+El bosquejo del modelo relacional define las tablas, sus llaves primarias (PK) y llaves foráneas (FK), aplicando las correcciones necesarias para asegurar la integridad referencial y evitar las redundancias detectadas en el análisis previo. El modelo se implementará en MySQL con el motor InnoDB, el cual soporta llaves foráneas y transacciones, garantizando la integridad referencial entre las tablas. El esquema resultante es el siguiente:
+USUARIO (id_usuario PK, nombre, correo, contraseña, carrera)
+PROGRESO (id_progreso PK, id_usuario FK, porcentaje_av)
+CURSO (id_curso PK, id_usuario FK, nombre)
+TEMA (id_tema PK, id_curso FK, nombre, estado)
+SIMULACRO (id_simulacro PK, id_usuario FK, fecha, puntaje, tiempo, corrección, archivo)
+HORARIO (id_horario PK, id_usuario FK, dia, hora)
+META (id_meta PK, id_usuario FK, objetivo, estado)
+SESION (id_sesion PK, id_usuario FK, id_tema FK, tiempo_hora, tiempo_minuto, tiempo_segundo, nivel_comprension)
+DOCUMENTO (id_documento PK, id_tema FK, temario, separata, resumen, guia)
+FLASHCARD (id_flashcard PK, id_tema FK, pregunta, respuesta)
+La Figura 3 muestra la representación física del modelo relacional, con los tipos de datos y las relaciones entre tablas tal como se diseñaron en la herramienta de modelado.
+Figura 3
+Modelo relacional físico del sistema PrepaTrack
+[ Espacio reservado para insertar el diagrama - en escala de grises ]
+Nota. Este diagrama existe en el segundo avance del proyecto (modelo físico generado en la herramienta de modelado); debe exportarse en escala de grises e insertarse en este espacio. Elaboración propia.
+9. Normalización (hasta la 3FN)
+Para demostrar el proceso de normalización se toma como ejemplo crítico el registro de los recursos académicos (Cursos, Temas y Documentos). Se parte de una estructura inicial no normalizada (0FN), que simula cómo se manejaría la información en una hoja de cálculo básica, y se aplican las reglas hasta llegar a la Tercera Forma Normal (3FN).
+9.1. Forma No Normalizada (0FN)
+En el registro inicial, un solo tema contiene múltiples archivos combinados en una sola celda, lo que hace imposible consultar o actualizar un documento específico sin reescribir toda la fila.
+Tabla 2
+Estructura no normalizada (0FN)
+ID_Curso
+Curso_Nombre
+ID_Tema
+Tema_Nombre
+Archivos_Asignados (Temario, Separata)
+C01
+Álgebra
+T01
+Ecuaciones Lineales
+[tem_eq.pdf, sep_eq_basico.pdf]
+C01
+Álgebra
+T02
+Funciones
+[tem_fun.pdf, sep_fun1.pdf]
+C02
+Biología
+T03
+La Célula
+[tem_cel.pdf, sep_cel_eucariota.pdf]
+9.2. Primera Forma Normal (1FN)
+Se separan los datos combinados de la columna Archivos_Asignados. De este modo, cada documento tiene su propia fila y sus propios campos específicos, eliminando los grupos repetidos y los valores multivaluados.
+Tabla 3
+Reporte de materiales en Primera Forma Normal (1FN)
+ID_Curso
+Curso_Nombre
+ID_Tema
+Tema_Nombre
+ID_Documento
+Temario
+Separata
+C01
+Álgebra
+T01
+Ecuaciones Lineales
+D01
+tem_eq.pdf
+sep_eq_basico.pdf
+C01
+Álgebra
+T02
+Funciones
+D02
+tem_fun.pdf
+sep_fun1.pdf
+C02
+Biología
+T03
+La Célula
+D03
+tem_cel.pdf
+sep_cel_eucariota.pdf
+9.3. Segunda Forma Normal (2FN)
+La 2FN exige que no existan dependencias parciales; es decir, todos los atributos no clave deben depender completamente de la llave primaria. Al contar con llaves primarias simples (por ejemplo, id_documento), todos los campos de las tablas dependen en su totalidad del identificador único, cumpliendo satisfactoriamente con la 2FN. La información se separa en tablas independientes.
+Tabla 4
+Tabla Curso (2FN)
+id_curso (PK)
+nombre
+C01
+Álgebra
+C02
+Biología
+Tabla 5
+Tabla Tema (2FN)
+id_tema (PK)
+id_curso (FK)
+nombre
+T01
+C01
+Ecuaciones Lineales
+T02
+C01
+Funciones
+T03
+C02
+La Célula
+Tabla 6
+Tabla Documento (2FN)
+id_documento (PK)
+id_tema (FK)
+id_curso (FK)
+temario
+separata
+D01
+T01
+C01
+tem_eq.pdf
+sep_eq_basico.pdf
+D02
+T02
+C01
+tem_fun.pdf
+sep_fun1.pdf
+D03
+T03
+C02
+tem_cel.pdf
+sep_cel_eucariota.pdf
+9.4. Tercera Forma Normal (3FN)
+Se observa la tabla Documento resultante de la 2FN, que contiene tanto id_tema como id_curso. Esto genera una dependencia transitiva: por regla de negocio, un documento pertenece a un tema y ese tema ya pertenece a un curso. Si se conoce el id_tema, indirectamente se conoce el id_curso. Almacenar id_curso en la tabla Documento es redundante en 3FN, por lo que se elimina. Las demás tablas creadas en la 2FN mantienen su forma, dado que no presentan dependencias transitivas.
+Tabla 7
+Tabla Documento en Tercera Forma Normal (3FN)
+id_documento (PK)
+id_tema (FK)
+temario
+separata
+D01
+T01
+tem_eq.pdf
+sep_eq_basico.pdf
+D02
+T02
+tem_fun.pdf
+sep_fun1.pdf
+D03
+T03
+tem_cel.pdf
+sep_cel_eucariota.pdf
+10. Consultas de Aplicación
+La base de datos del sistema PrepaTrack se implementará en MySQL, utilizando el motor de almacenamiento InnoDB para garantizar la integridad referencial mediante llaves foráneas. A continuación se presentan diecisiete consultas de aplicación, redactadas en sintaxis MySQL y alineadas con los requerimientos funcionales y las reglas de negocio del sistema. Constituyen una propuesta sujeta a validación durante la implementación física. Al final se incluyen los objetos de base de datos (una vista y un disparador) que automatizan el cálculo del avance y la generación de reportes. En las consultas se emplea como ejemplo el identificador de usuario 1 (id_usuario = 1).
+10.1. Porcentaje de avance por curso
+Calcula el porcentaje de temas dominados respecto al total de temas de cada curso de un estudiante. Se aprovecha que MySQL evalúa una condición booleana como 1 o 0.
+SELECT  c.nombre AS curso,
+        COUNT(t.id_tema) AS total_temas,
+        SUM(t.estado = 'Dominado') AS temas_dominados,
+        ROUND(SUM(t.estado = 'Dominado') * 100 / COUNT(t.id_tema), 2) AS porcentaje_avance
+FROM    curso c
+JOIN    tema  t ON t.id_curso = c.id_curso
+WHERE   c.id_usuario = 1
+GROUP BY c.id_curso, c.nombre;
+10.2. Temas pendientes o por reforzar
+Lista los temas que requieren atención según su estado. La función MySQL FIELD() ordena por prioridad de atención.
+SELECT  c.nombre AS curso, t.nombre AS tema, t.estado
+FROM    tema  t
+JOIN    curso c ON c.id_curso = t.id_curso
+WHERE   c.id_usuario = 1
+  AND   t.estado IN ('No iniciado', 'En proceso', 'Reforzar')
+ORDER BY c.nombre,
+         FIELD(t.estado, 'Reforzar', 'En proceso', 'No iniciado');
+10.3. Conteo de temas por estado
+Agrupa los temas del estudiante según su estado de avance para obtener un resumen rápido.
+SELECT  t.estado, COUNT(*) AS cantidad
+FROM    tema  t
+JOIN    curso c ON c.id_curso = t.id_curso
+WHERE   c.id_usuario = 1
+GROUP BY t.estado
+ORDER BY cantidad DESC;
+10.4. Cursos completados al 100%
+Identifica los cursos en los que todos los temas se encuentran en estado Dominado, usando HAVING.
+SELECT  c.nombre AS curso
+FROM    curso c
+JOIN    tema  t ON t.id_curso = c.id_curso
+WHERE   c.id_usuario = 1
+GROUP BY c.id_curso, c.nombre
+HAVING  SUM(t.estado <> 'Dominado') = 0;
+10.5. Evolución de puntajes en simulacros
+Muestra la progresión del desempeño de un estudiante a lo largo del tiempo.
+SELECT  fecha, puntaje, tiempo
+FROM    simulacro
+WHERE   id_usuario = 1
+ORDER BY fecha ASC;
+10.6. Estadísticas de simulacros por usuario
+Calcula el promedio, el mejor y el peor puntaje de cada usuario. El LEFT JOIN incluye usuarios sin simulacros.
+SELECT  u.nombre,
+        COUNT(s.id_simulacro) AS total_simulacros,
+        ROUND(AVG(s.puntaje), 2) AS promedio,
+        MAX(s.puntaje) AS mejor_puntaje,
+        MIN(s.puntaje) AS peor_puntaje
+FROM    usuario u
+LEFT JOIN simulacro s ON s.id_usuario = u.id_usuario
+GROUP BY u.id_usuario, u.nombre;
+10.7. Simulacros de los últimos 30 días
+Filtra los simulacros recientes empleando funciones de fecha de MySQL.
+SELECT  fecha, puntaje
+FROM    simulacro
+WHERE   id_usuario = 1
+  AND   fecha >= CURDATE() - INTERVAL 30 DAY
+ORDER BY fecha DESC;
+10.8. Mejor simulacro de cada usuario
+Obtiene, para cada usuario, el simulacro con mayor puntaje mediante una subconsulta correlacionada.
+SELECT  s.id_usuario, s.fecha, s.puntaje
+FROM    simulacro s
+WHERE   s.puntaje = (
+          SELECT MAX(s2.puntaje)
+          FROM   simulacro s2
+          WHERE  s2.id_usuario = s.id_usuario);
+10.9. Documentos disponibles por curso y tema
+Une documento, tema y curso para organizar el material académico del estudiante.
+SELECT  c.nombre AS curso, t.nombre AS tema,
+        d.temario, d.separata, d.resumen, d.guia
+FROM    documento d
+JOIN    tema  t ON t.id_tema  = d.id_tema
+JOIN    curso c ON c.id_curso = t.id_curso
+WHERE   c.id_usuario = 1
+ORDER BY c.nombre, t.nombre;
+10.10. Cantidad de flashcards por tema
+Cuenta las flashcards asociadas a cada tema. El LEFT JOIN muestra también los temas sin flashcards.
+SELECT  t.nombre AS tema, COUNT(f.id_flashcard) AS total_flashcards
+FROM    tema t
+LEFT JOIN flashcard f ON f.id_tema = t.id_tema
+GROUP BY t.id_tema, t.nombre
+ORDER BY total_flashcards DESC;
+10.11. Flashcards de un tema específico
+Recupera las preguntas y respuestas de un tema para una sesión de repaso.
+SELECT  pregunta, respuesta
+FROM    flashcard
+WHERE   id_tema = 1;
+10.12. Tiempo total de estudio por curso
+Suma las horas, minutos y segundos de las sesiones y los convierte a formato de tiempo con SEC_TO_TIME() de MySQL.
+SELECT  c.nombre AS curso,
+        SEC_TO_TIME(
+          SUM(se.tiempo_hora * 3600 + se.tiempo_minuto * 60 + se.tiempo_segundo)
+        ) AS tiempo_total
+FROM    sesion se
+JOIN    tema  t ON t.id_tema  = se.id_tema
+JOIN    curso c ON c.id_curso = t.id_curso
+WHERE   se.id_usuario = 1
+GROUP BY c.id_curso, c.nombre;
+10.13. Nivel de comprensión promedio por tema
+Promedia el nivel de comprensión registrado en las sesiones de estudio de cada tema.
+SELECT  t.nombre AS tema,
+        ROUND(AVG(se.nivel_comprension), 2) AS comprension_promedio
+FROM    sesion se
+JOIN    tema  t ON t.id_tema = se.id_tema
+GROUP BY t.id_tema, t.nombre
+ORDER BY comprension_promedio ASC;
+10.14. Temas que requieren refuerzo por baja comprensión
+Filtra los temas cuyo nivel de comprensión promedio es menor a 3, usando HAVING.
+SELECT  t.nombre AS tema,
+        ROUND(AVG(se.nivel_comprension), 2) AS comprension_promedio
+FROM    sesion se
+JOIN    tema  t ON t.id_tema = se.id_tema
+GROUP BY t.id_tema, t.nombre
+HAVING  AVG(se.nivel_comprension) < 3
+ORDER BY comprension_promedio ASC;
+10.15. Estado de cumplimiento de metas por usuario
+Agrupa las metas por estado para conocer cuántas están pendientes, en proceso o cumplidas.
+SELECT  u.nombre, m.estado, COUNT(*) AS cantidad
+FROM    meta m
+JOIN    usuario u ON u.id_usuario = m.id_usuario
+GROUP BY u.id_usuario, u.nombre, m.estado
+ORDER BY u.nombre, m.estado;
+10.16. Horario de estudio semanal de un usuario
+Ordena los bloques de estudio por día de la semana y hora mediante FIELD() de MySQL.
+SELECT  dia, hora
+FROM    horario
+WHERE   id_usuario = 1
+ORDER BY FIELD(dia, 'Lunes', 'Martes', 'Miércoles',
+               'Jueves', 'Viernes', 'Sábado', 'Domingo'),
+         hora;
+10.17. Progreso global de todos los usuarios
+Muestra el porcentaje de avance global de cada estudiante, ordenado de mayor a menor.
+SELECT  u.nombre, p.porcentaje_av AS porcentaje_avance
+FROM    usuario u
+JOIN    progreso p ON p.id_usuario = u.id_usuario
+ORDER BY p.porcentaje_av DESC;
+10.18. Objetos de base de datos (MySQL)
+Además de las consultas anteriores, el sistema define una vista y un disparador en MySQL para automatizar tareas frecuentes.
+Vista de reporte de rendimiento
+Vista (view) que consolida el rendimiento por usuario y curso para la generación rápida de reportes.
+CREATE OR REPLACE VIEW vista_rendimiento AS
+SELECT  u.id_usuario, u.nombre, c.nombre AS curso,
+        COUNT(t.id_tema) AS total_temas,
+        SUM(t.estado = 'Dominado') AS dominados
+FROM    usuario u
+JOIN    curso  c ON c.id_usuario = u.id_usuario
+JOIN    tema   t ON t.id_curso  = c.id_curso
+GROUP BY u.id_usuario, u.nombre, c.id_curso, c.nombre;
+Disparador para actualizar el progreso
+Disparador (trigger) que recalcula el porcentaje de avance del estudiante cada vez que cambia el estado de un tema.
+DELIMITER //
+CREATE TRIGGER trg_actualiza_progreso
+AFTER UPDATE ON tema
+FOR EACH ROW
+BEGIN
+  DECLARE v_usuario INT;
+  SELECT id_usuario INTO v_usuario
+  FROM   curso WHERE id_curso = NEW.id_curso;
+  UPDATE progreso
+  SET    porcentaje_av = (
+           SELECT ROUND(SUM(t.estado = 'Dominado') * 100 / COUNT(t.id_tema), 2)
+           FROM   tema  t
+           JOIN   curso c ON c.id_curso = t.id_curso
+           WHERE  c.id_usuario = v_usuario)
+  WHERE  id_usuario = v_usuario;
+END //
+DELIMITER ;
+11. Conclusiones
+El diseño relacional propuesto para PrepaTrack cumple con el objetivo general del proyecto, al organizar la información académica del estudiante en diez entidades normalizadas que garantizan exactitud, consistencia y ausencia de redundancias.
+La evolución desde el diagrama Entidad-Relación inicial hacia el Modelo Entidad-Relación Extendido permitió consolidar las cardinalidades y las relaciones jerárquicas, situando al Usuario como entidad central y al Tema como articulador de los recursos de estudio.
+El proceso de normalización hasta la Tercera Forma Normal eliminó los grupos repetidos (1FN), las dependencias parciales (2FN) y la dependencia transitiva detectada en la tabla Documento (3FN), mejorando la integridad y el rendimiento del modelo.
+El catálogo de datos y el modelo relacional definitivo dejan la base de datos lista para su implementación física en MySQL (motor InnoDB), mientras que las vistas y los disparadores propuestos permitirán automatizar el cálculo del avance y la generación de reportes.
+Como trabajo pendiente, se debe insertar la versión en escala de grises de los diagramas (Figuras 1, 2 y 3) e implementar y validar las diecisiete consultas de aplicación, la vista y el disparador sobre el gestor MySQL.
+12. Catálogo de Datos (Diccionario de Datos)
+El catálogo de datos describe, para cada tabla del modelo relacional, sus campos, tipos de dato, condición de llave, admisión de nulos y una breve descripción. Los tipos de dato corresponden a los soportados por MySQL y pueden ajustarse durante la implementación física.
+Tabla 8
+Tabla USUARIO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_usuario
+INT
+PK
+No
+Identificador único del estudiante.
+nombre
+VARCHAR(255)
+-
+No
+Nombre completo del estudiante.
+correo
+VARCHAR(255)
+-
+No
+Correo electrónico (único en el sistema).
+contraseña
+VARCHAR(255)
+-
+No
+Credencial de acceso almacenada de forma segura.
+carrera
+VARCHAR(255)
+-
+Sí
+Carrera o especialidad a la que postula.
+Tabla 9
+Tabla PROGRESO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_progreso
+INT
+PK
+No
+Identificador del registro de progreso.
+id_usuario
+INT
+FK
+No
+Referencia al usuario (relación 1:1).
+porcentaje_av
+DECIMAL(5,2)
+-
+No
+Porcentaje de avance global (0 a 100).
+Tabla 10
+Tabla CURSO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_curso
+INT
+PK
+No
+Identificador del curso.
+id_usuario
+INT
+FK
+No
+Usuario propietario del curso.
+nombre
+VARCHAR(255)
+-
+No
+Nombre del curso.
+Tabla 11
+Tabla TEMA
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_tema
+INT
+PK
+No
+Identificador del tema.
+id_curso
+INT
+FK
+No
+Curso al que pertenece el tema.
+nombre
+VARCHAR(255)
+-
+No
+Nombre del tema.
+estado
+VARCHAR(20)
+-
+No
+Estado de avance del tema (cinco valores válidos).
+Tabla 12
+Tabla SIMULACRO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_simulacro
+INT
+PK
+No
+Identificador del simulacro.
+id_usuario
+INT
+FK
+No
+Usuario que resuelve el simulacro.
+fecha
+DATE
+-
+No
+Fecha de realización.
+puntaje
+INT
+-
+No
+Puntaje obtenido.
+tiempo
+TIME
+-
+Sí
+Tiempo de duración del simulacro.
+corrección
+VARCHAR(255)
+-
+Sí
+Detalle de respuestas correctas e incorrectas.
+archivo
+VARCHAR(255)
+-
+Sí
+Ruta del archivo adjunto.
+Tabla 13
+Tabla HORARIO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_horario
+INT
+PK
+No
+Identificador del bloque de horario.
+id_usuario
+INT
+FK
+No
+Usuario que organiza el horario.
+dia
+VARCHAR(20)
+-
+No
+Día de estudio.
+hora
+TIME
+-
+No
+Hora del bloque de estudio.
+Tabla 14
+Tabla META
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_meta
+INT
+PK
+No
+Identificador de la meta.
+id_usuario
+INT
+FK
+No
+Usuario que define la meta.
+objetivo
+VARCHAR(255)
+-
+No
+Descripción del objetivo.
+estado
+VARCHAR(20)
+-
+No
+Estado de la meta (Pendiente, En proceso, Cumplida).
+Tabla 15
+Tabla SESION
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_sesion
+INT
+PK
+No
+Identificador de la sesión de estudio.
+id_usuario
+INT
+FK
+No
+Usuario que realiza la sesión.
+id_tema
+INT
+FK
+No
+Tema estudiado en la sesión.
+tiempo_hora
+INT
+-
+No
+Horas invertidas en la sesión.
+tiempo_minuto
+INT
+-
+No
+Minutos invertidos en la sesión.
+tiempo_segundo
+INT
+-
+No
+Segundos invertidos en la sesión.
+nivel_comprension
+INT
+-
+No
+Nivel de comprensión alcanzado (1 a 5).
+Tabla 16
+Tabla DOCUMENTO
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_documento
+INT
+PK
+No
+Identificador del documento.
+id_tema
+INT
+FK
+No
+Tema al que pertenece el documento.
+temario
+VARCHAR(255)
+-
+Sí
+Archivo de temario.
+separata
+VARCHAR(255)
+-
+Sí
+Archivo de separata.
+resumen
+VARCHAR(255)
+-
+Sí
+Archivo de resumen.
+guia
+VARCHAR(255)
+-
+Sí
+Archivo de guía.
+Tabla 17
+Tabla FLASHCARD
+Campo
+Tipo de dato
+Llave
+Nulo
+Descripción
+id_flashcard
+INT
+PK
+No
+Identificador de la flashcard.
+id_tema
+INT
+FK
+No
+Tema reforzado por la flashcard.
+pregunta
+TEXT
+-
+No
+Texto de la pregunta.
+respuesta
+TEXT
+-
+No
+Texto de la respuesta.
+13. Referencias Bibliográficas
+Codd, E. F. (1970). A relational model of data for large shared data banks. Communications of the ACM, 13(6), 377-387. https://doi.org/10.1145/362384.362685
+Connolly, T., & Begg, C. (2014). Database systems: A practical approach to design, implementation, and management (6.ª ed.). Pearson.
+Date, C. J. (2003). An introduction to database systems (8th ed.). Addison-Wesley.
+Elmasri, R., & Navathe, S. B. (2016). Fundamentals of database systems (7th ed.). Pearson.
+Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). Database system concepts (7th ed.). McGraw-Hill.
