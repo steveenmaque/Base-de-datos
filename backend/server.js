@@ -26,6 +26,7 @@ app.use('/api/documentos', require('./routes/documentos.routes'));
 app.use('/api/flashcards', require('./routes/flashcards.routes'));
 app.use('/api/progreso', require('./routes/progreso.routes'));
 app.use('/api/reportes', require('./routes/reportes.routes'));
+app.use('/api/monitor', require('./routes/monitor.routes'));
 
 // Endpoint de verificacion de salud
 app.get('/api/health', (req, res) => {

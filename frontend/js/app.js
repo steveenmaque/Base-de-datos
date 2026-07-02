@@ -15,7 +15,8 @@ var App = (function () {
         sesiones:   function () { return SesionesModule.render(); },
         documentos: function () { return DocumentosModule.render(); },
         flashcards: function () { return FlashcardsModule.render(); },
-        reportes:   function () { return ReportesModule.render(); }
+        reportes:   function () { return ReportesModule.render(); },
+        monitor:    function () { return MonitorModule.render(); }
     };
 
     var currentPage = 'dashboard';
@@ -53,6 +54,13 @@ var App = (function () {
     // Navegar a una pagina: marca el item activo y renderiza su modulo
     function navigate(page) {
         if (!pages[page]) page = 'dashboard';
+
+        // Al salir del Monitor, detener su auto-refresco para que no
+        // sobrescriba el contenido de la pagina a la que se navega
+        if (currentPage === 'monitor' && page !== 'monitor' && window.MonitorModule) {
+            MonitorModule.stop();
+        }
+
         currentPage = page;
 
         // Actualizar el item activo del menu lateral

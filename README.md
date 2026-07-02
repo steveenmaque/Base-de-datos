@@ -63,7 +63,7 @@ El detalle del flujo de conexion esta en [docs/GUION-PRESENTACION.md](docs/GUION
 
 ## Base de datos
 
-El curso es de Base de Datos, por lo que el modelo es el corazon del proyecto. Toda la BD es visible en [`database/schema.sql`](database/schema.sql) (estructura) y [`database/seed.sql`](database/seed.sql) (datos de prueba).
+El curso es de Base de Datos, por lo que el modelo es el corazon del proyecto. Toda la BD es visible en [`database/schema.sql`](database/schema.sql) (estructura), [`database/seed.sql`](database/seed.sql) (datos de prueba) y [`database/views.sql`](database/views.sql) (vistas consolidadas para la demostracion en vivo).
 
 ### Diez tablas (relacion 1:N salvo Progreso, que es 1:1 con Usuario)
 
@@ -127,7 +127,8 @@ prepatrack/
 │   └── .env.example           Plantilla de variables de entorno
 ├── database/
 │   ├── schema.sql            Estructura: tablas, vista y disparador (DDL)
-│   └── seed.sql              Datos de prueba (DML)
+│   ├── seed.sql              Datos de prueba (DML)
+│   └── views.sql             Vistas consolidadas para la demo en vivo
 ├── frontend/                  Aplicacion web (HTML/CSS/JS sin frameworks)
 │   ├── index.html
 │   ├── css/styles.css
@@ -137,7 +138,9 @@ prepatrack/
 ├── docs/                      Guias del proyecto
 │   ├── INSTALACION.md
 │   ├── DESPLIEGUE.md
-│   └── GUION-PRESENTACION.md
+│   ├── GUION-PRESENTACION.md
+│   ├── ARQUITECTURA-BD-BACKEND-FRONTEND.md
+│   └── DEMO-EN-VIVO.md
 └── README.md
 ```
 
@@ -193,6 +196,8 @@ La guia detallada (incluyendo solucion de problemas) esta en [docs/INSTALACION.m
 - [docs/INSTALACION.md](docs/INSTALACION.md) - Instalacion paso a paso y publicacion en GitHub.
 - [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) - Despliegue en la nube y como hacer la base de datos visible.
 - [docs/GUION-PRESENTACION.md](docs/GUION-PRESENTACION.md) - Guion para exponer la conexion backend-frontend.
+- [docs/ARQUITECTURA-BD-BACKEND-FRONTEND.md](docs/ARQUITECTURA-BD-BACKEND-FRONTEND.md) - Mapa de cada bloque de la base de datos y como se conecta con el backend y el frontend.
+- [docs/DEMO-EN-VIVO.md](docs/DEMO-EN-VIVO.md) - Guia para demostrar en vivo como cambia la base de datos al agregar o eliminar datos (pagina Monitor BD + vistas SQL).
 
 ---
 
